@@ -1,0 +1,394 @@
+{
+	"info": {
+		"_postman_id": "159d7370-baa9-4b96-a972-68380e5c5455",
+		"name": "GovTech Assessment (Advanced)",
+		"description": "Comprehensive API Collection with organized folders and test cases.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "26843811"
+	},
+	"item": [
+		{
+			"name": "Utils",
+			"item": [
+				{
+					"name": "Generate API Key",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.data && jsonData.data.apiKey) {",
+									"    console.log(\"API Key: \" + jsonData.data.apiKey);",
+									"    pm.collectionVariables.set(\"apiKey\", jsonData.data.apiKey);",
+									"}",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/api/generate-key"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "1. Register",
+			"item": [
+				{
+					"name": "Register Students",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"teacher\": \"teacherken@gmail.com\",\n  \"students\": [\n    \"studentjon@gmail.com\",\n    \"studenthon@gmail.com\",\n    \"student_common@gmail.com\"\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseUrl}}/api/register"
+					},
+					"response": []
+				},
+				{
+					"name": "Register - Invalid Email",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"teacher\": \"teacherken@gmail.com\",\n  \"students\": [\n    \"not-an-email\"\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseUrl}}/api/register"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Common Students",
+			"item": [
+				{
+					"name": "Common Students - One Teacher",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/commonstudents?teacher=teacherken@gmail.com",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"commonstudents"
+							],
+							"query": [
+								{
+									"key": "teacher",
+									"value": "teacherken@gmail.com"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Common Students - Two Teachers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/commonstudents?teacher=teacherken@gmail.com&teacher=teacherjoe@gmail.com",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"commonstudents"
+							],
+							"query": [
+								{
+									"key": "teacher",
+									"value": "teacherken@gmail.com"
+								},
+								{
+									"key": "teacher",
+									"value": "teacherjoe@gmail.com"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Common Students - Teacher Not Found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"pm.test(\"Error message contains teacher\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.contain(\"Teachers not found\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/commonstudents?teacher=nonexistent@gmail.com",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"commonstudents"
+							],
+							"query": [
+								{
+									"key": "teacher",
+									"value": "nonexistent@gmail.com"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Suspend",
+			"item": [
+				{
+					"name": "Suspend Student",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 204\", function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"student\": \"studentmary@gmail.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseUrl}}/api/suspend"
+					},
+					"response": []
+				},
+				{
+					"name": "Suspend - Not Found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"student\": \"nonexistent@gmail.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseUrl}}/api/suspend"
+					},
+					"response": []
+				},
+				{
+					"name": "Suspend - Already Suspended",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"pm.test(\"Message says already suspended\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.message).to.contain(\"is already suspended\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"student\": \"studentmary@gmail.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseUrl}}/api/suspend"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Notifications",
+			"item": [
+				{
+					"name": "Retrieve - With Mentions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"teacher\":  \"teacherken@gmail.com\",\n  \"notification\": \"Hello students! @studentagnes@gmail.com @studentmiche@gmail.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseUrl}}/api/retrievefornotifications"
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieve - No Mentions",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"teacher\":  \"teacherken@gmail.com\",\n  \"notification\": \"Hey everybody\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseUrl}}/api/retrievefornotifications"
+					},
+					"response": []
+				},
+				{
+					"name": "Retrieve - Have Student Does't Existed",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"teacher\":  \"teacherken@gmail.com\",\n  \"notification\": \"Hey everybody\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseUrl}}/api/retrievefornotifications"
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "apiKey",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
