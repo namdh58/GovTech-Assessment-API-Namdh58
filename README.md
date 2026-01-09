@@ -25,6 +25,7 @@ This project is a NodeJS-based API for a school administrative system, allowing 
     DB_USER=root
     DB_PASSWORD=your_password
     DB_NAME=school_admin
+    DB_AUTO_SYNCHRONIZE=true
     IS_REDIS_ENABLE=true
     REDIS_HOST=localhost
     REDIS_PORT=6379

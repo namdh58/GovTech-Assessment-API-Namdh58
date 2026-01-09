@@ -12,6 +12,7 @@ services:
       - DB_USER=root
       - DB_PASSWORD=rootpassword
       - DB_NAME=school_admin
+      - DB_AUTO_SYNCHRONIZE=true
       - IS_REDIS_ENABLE=true
       - REDIS_HOST=redis
       - REDIS_PORT=6379
