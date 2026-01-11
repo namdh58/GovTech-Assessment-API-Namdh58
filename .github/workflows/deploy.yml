@@ -1,0 +1,57 @@
+
+name: Deploy to Cloud Run (Simple)
+
+on:
+  push:
+    branches: ["main"]      # Deploy on push to main
+  workflow_dispatch:         # Allow manual run
+
+env:
+  REGION: ${{ secrets.GCP_REGION }}           # e.g., asia-southeast1
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}   # your GCP project ID
+  REPO: ${{ secrets.AR_REPO }}                # Artifact Registry repo name
+  SERVICE: ${{ secrets.CLOUD_RUN_SERVICE }}   # Cloud Run service name
+  IMAGE: ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.AR_REPO }}/${{ secrets.CLOUD_RUN_SERVICE }}:${{ github.sha }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Auth (Service Account Key)
+        if: ${{ secrets.GCP_SA_KEY != '' }}
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      # Configure Docker to push to Artifact Registry
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker $REGION-docker.pkg.dev
+
+      # Build & push Docker image
+      - name: Build image
+        run: docker build -t "$IMAGE" .
+      - name: Push image
+        run: docker push "$IMAGE"
+
+      # Deploy to Cloud Run
+      - name: Deploy
+        run: |
+          gcloud run deploy "$SERVICE" \
+            --image "$IMAGE" \
+            --region "$REGION" \
+            --platform managed \
+            --allow-unauthenticated
+
+      # Optional: print the URL
+      - name: Show Service URL
+        run: |
+          gcloud run services describe "$SERVICE" --region "$REGION" \
+            --format='value(status.url)'
