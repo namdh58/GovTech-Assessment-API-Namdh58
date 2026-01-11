@@ -1,16 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const SchoolController = require('../controllers/SchoolController');
-const ApiKeyController = require('../controllers/ApiKeyController');
+const SeedController = require('../controllers/SeedController');
 const validate = require('../middlewares/validation.middleware');
 const { registerDto, suspendDto, notificationDto } = require('../dtos/school.dto');
-const authMiddleware = require('../middlewares/auth.middleware');
 
-// Public
-router.get('/generate-key', ApiKeyController.generateKey);
-
-// Protected
-router.use(authMiddleware);
+router.post('/init-data', SeedController.seed);
 
 router.post(
     '/register',

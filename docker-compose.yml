@@ -13,13 +13,8 @@ services:
       - DB_PASSWORD=rootpassword
       - DB_NAME=school_admin
       - DB_AUTO_SYNCHRONIZE=true
-      - IS_REDIS_ENABLE=true
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
     depends_on:
       mysql:
-        condition: service_healthy
-      redis:
         condition: service_healthy
     networks:
       - school-network
@@ -38,18 +33,6 @@ services:
       retries: 5
     volumes:
       - mysql_data:/var/lib/mysql
-    networks:
-      - school-network
-
-  redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     networks:
       - school-network
 

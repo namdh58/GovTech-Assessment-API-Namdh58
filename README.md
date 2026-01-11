@@ -7,7 +7,6 @@ This project is a NodeJS-based API for a school administrative system, allowing 
 ### Prerequisities
 *   Node.js (v18+)
 *   MySQL
-*   Redis (Optional, enable via `.env`)
 
 ### Local Setup
 1.  **Clone the repository**
@@ -26,9 +25,6 @@ This project is a NodeJS-based API for a school administrative system, allowing 
     DB_PASSWORD=your_password
     DB_NAME=school_admin
     DB_AUTO_SYNCHRONIZE=true
-    IS_REDIS_ENABLE=true
-    REDIS_HOST=localhost
-    REDIS_PORT=6379
     ```
 4.  **Initialize Database**:
     Run the initialization script to seed the database with necessary tables and default data.
@@ -43,7 +39,7 @@ This project is a NodeJS-based API for a school administrative system, allowing 
     ```
 
 ### Docker Setup (Recommended)
-You can spin up the entire stack (App, MySQL, Redis) using Docker Compose.
+You can spin up the entire stack (App, MySQL) using Docker Compose.
 
 1.  **Build and Run**:
     ```bash
@@ -71,23 +67,6 @@ A comprehensive Postman Collection is included to facilitate testing of the API 
 2.  **Environment Variables**:
     *   The collection comes with a pre-configured `baseUrl` variable set to `http://localhost:3000`. If your server is running on a different port, update this variable in the Collection Settings (Programs -> Edit -> Variables).
 
-3.  **Authentication (Optional)**:
-    *   The collection includes a **"Utils"** folder with a "Generate API Key" request.
-    *   **Automation**: When you run the "Generate API Key" request, a **Test Script** automatically captures the returned `apiKey` and saves it as a Collection Variable.
-    *   Subsequent requests will automatically use this key if you configure them to use the `{{apiKey}}` variable in their headers (though currently, the API might be public or using headers set manually; check the "Authorization" tab or headers of individual requests if authentication is enforced).
-
-## Redis Usage
-Redis is used in this project primarily for **API Security** (via `src/controllers/ApiKeyController.js` and `src/middlewares/auth.middleware.js`).
-
-1.  **API Key Management**: 
-    *   When an API Key is generated (`GET /api/generate-key`), it is stored in Redis with a Time-To-Live (TTL) of 24 hours.
-    *   This provides a fast, in-memory lookup to validate incoming requests without hitting the primary database.
-2.  **Authentication Middleware**:
-    *   The `authMiddleware` checks for the `x-api-key` header.
-    *   It validates these keys against the Redis cache.
-    *   If Redis is disabled (`IS_REDIS_ENABLE=false`), the authentication check is skipped for development convenience.
-
-
 ## Project Structure
 
 The project is organized into a modular structure to ensure separation of concerns and maintainability.
@@ -98,7 +77,7 @@ src/
 ├── controllers/    # Request handlers, processing input and creating responses
 ├── dtos/           # Data Transfer Objects, defining schemas for request validation
 ├── entities/       # Database entities (TypeORM definitions)
-├── middlewares/    # Express middlewares (Authentication, Validation, Error Handling)
+├── middlewares/    # Express middlewares (Validation, Error Handling)
 ├── repositories/   # Data access layer, abstracting database queries
 │   ├── index.js             # Export point for repositories
 │   ├── StudentRepository.js # Custom repository for Student-related queries
@@ -116,7 +95,7 @@ src/
 *   **`src/services`**: Contains the core business logic. This layer interacts with repositories to fetch/save data and implements the rules of the application (e.g., checking if a student is suspended).
 *   **`src/repositories`**: Abstraction layer for database interactions. Moving complex queries (like finding common students or filtering notification recipients) here keeps the Service layer focused on business rules rather than SQL/QueryBuilders.
 *   **`src/entities`**: Defines the database schema using TypeORM. Each file represents a table in the database.
-*   **`src/middlewares`**: Contains interceptors for requests, handling tasks like Authentication, Input Validation (JOI), and centralized Error Handling.
+*   **`src/middlewares`**: Contains interceptors for requests, handling tasks like Input Validation (JOI), and centralized Error Handling.
 *   **`src/routes`**: Defines the API endpoints and maps them to their respective controllers and middlewares.
 
 ## Request Flow
@@ -131,7 +110,6 @@ How the server processes a request from start to end:
     *   **Logger (Morgan)**: Logs the request details.
 3.  **Routing (`src/routes/api.routes.js`)**: The request is matched to a defined route (e.g., `POST /api/register`).
 4.  **Route Middlewares**:
-    *   **Authentication**: Checks if the request is authorized (e.g., validates API Key).
     *   **Validation**: Validates the request body against the DTO schema using `validate(dto)`. If invalid, a `400 Bad Request` is thrown immediately.
 5.  **Controller (`src/controllers`)**: The controller receives the validated request. It extracts necessary data (body, query params) and calls the Service.
 6.  **Service (`src/services`)**: The service executes business logic.
