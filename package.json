@@ -9,6 +9,7 @@
     "build": "tsc",
     "lint": "eslint src/**/*.ts",
     "test": "jest",
+    "seed": "ts-node src/scripts/seed.ts",
     "typeorm": "typeorm-ts-node-commonjs",
     "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/config/data-source.ts",
     "migration:create": "typeorm-ts-node-commonjs migration:create",

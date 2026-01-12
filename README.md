@@ -55,6 +55,258 @@ The API will be available at `http://localhost:3000`
    npm start      
    ```
 
+## 📚 Step-by-Step Tutorial
+
+This tutorial will guide you through setting up and running the application from scratch.
+
+### Step 1: Clone and Install
+
+```bash
+# Clone the repository
+git clone https://github.com/namdh58/GovTech-Assessment-API-Namdh58.git
+cd GovTech-Assessment-API-Namdh58
+
+# Install dependencies
+npm install
+```
+
+### Step 2: Setup Database
+
+#### Option A: Using Docker (Recommended)
+
+```bash
+# Start MySQL and the application
+docker-compose up --build
+
+# The database, migrations, and seeding will be handled automatically
+```
+
+#### Option B: Local MySQL
+
+1. **Start MySQL** (ensure MySQL 8.0+ is installed and running)
+
+2. **Create `.env` file** in the project root:
+   ```env
+   DB_HOST=localhost
+   DB_PORT=3306
+   DB_USER=root
+   DB_PASSWORD=your_password
+   DB_NAME=govtech_db
+   SERVER_PORT=3000
+   ```
+
+3. **Create the database**:
+   ```sql
+   CREATE DATABASE govtech_db;
+   ```
+
+### Step 3: Run Migrations
+
+Migrations create the database schema (tables, relationships, indexes).
+
+```bash
+# Run all pending migrations
+npm run migration:run
+```
+
+**What this does:**
+- Creates `teachers` table
+- Creates `students` table
+- Creates `teacher_students` junction table for many-to-many relationships
+- Adds indexes for performance
+
+### Step 4: Seed Initial Data
+
+The seed script populates the database with mock data for testing.
+
+```bash
+# Run the seed script
+npm run seed
+```
+
+**What gets created:**
+
+**Teachers:**
+- teacherken@gmail.com
+- teacherjoe@gmail.com
+
+**Students:**
+- studentjon@gmail.com
+- studenthon@gmail.com
+- commonstudent1@gmail.com
+- commonstudent2@gmail.com
+- studentmary@gmail.com
+
+**Relationships:**
+- TeacherKen → studentjon, studenthon, commonstudent1, commonstudent2
+- TeacherJoe → commonstudent1, commonstudent2
+
+**Note:** The seed script is idempotent - safe to run multiple times. It will skip existing records.
+
+### Step 5: Start the Application
+
+```bash
+# Development mode (with hot reload)
+npm run dev
+
+# Production mode
+npm run build
+npm start
+```
+
+The API will be available at: **http://localhost:3000**
+
+### Step 6: Test the API
+
+#### Using cURL
+
+**1. Register Students to a Teacher:**
+```bash
+curl -X POST http://localhost:3000/api/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "teacher": "teacherken@gmail.com",
+    "students": ["studentjon@gmail.com", "studenthon@gmail.com"]
+  }'
+```
+
+**Expected Response:** `204 No Content`
+
+---
+
+**2. Get Common Students:**
+```bash
+curl -X GET "http://localhost:3000/api/commonstudents?teacher=teacherken@gmail.com&teacher=teacherjoe@gmail.com"
+```
+
+**Expected Response:**
+```json
+{
+  "students": ["commonstudent1@gmail.com", "commonstudent2@gmail.com"]
+}
+```
+
+---
+
+**3. Suspend a Student:**
+```bash
+curl -X POST http://localhost:3000/api/suspend \
+  -H "Content-Type: application/json" \
+  -d '{
+    "student": "studentmary@gmail.com"
+  }'
+```
+
+**Expected Response:** `204 No Content`
+
+---
+
+**4. Retrieve Notification Recipients:**
+```bash
+curl -X POST http://localhost:3000/api/retrievefornotifications \
+  -H "Content-Type: application/json" \
+  -d '{
+    "teacher": "teacherken@gmail.com",
+    "notification": "Hello students! @studentagnes@gmail.com"
+  }'
+```
+
+**Expected Response:**
+```json
+{
+  "recipients": [
+    "studentjon@gmail.com",
+    "studenthon@gmail.com",
+    "commonstudent1@gmail.com",
+    "commonstudent2@gmail.com",
+    "studentagnes@gmail.com"
+  ]
+}
+```
+
+#### Using Postman
+
+1. **Import Collection:**
+   - Open Postman
+   - Click **Import**
+   - Select `documents/GovTech Assessment.postman_collection.json`
+
+2. **Set Base URL:**
+   - Click on the collection
+   - Go to **Variables** tab
+   - Set `baseUrl` to `http://localhost:3000`
+
+3. **Run Requests:**
+   - Navigate through folders: Register, Common Students, Suspend, Notifications
+   - Each folder contains example requests with pre-filled data
+
+### Step 7: Verify Database Changes
+
+Connect to your MySQL database and verify the data:
+
+```sql
+-- View all teachers
+SELECT * FROM teachers;
+
+-- View all students
+SELECT * FROM students;
+
+-- View teacher-student relationships
+SELECT 
+    t.email AS teacher,
+    s.email AS student
+FROM teachers t
+JOIN teacher_students ts ON t.id = ts.teacherId
+JOIN students s ON s.id = ts.studentId
+ORDER BY t.email, s.email;
+
+-- Check suspended students
+SELECT email, is_suspended FROM students WHERE is_suspended = 1;
+```
+
+### Step 8: Run Tests
+
+Verify everything works correctly by running the test suite:
+
+```bash
+npm test
+```
+
+**Expected Output:**
+```
+✓ 15 passing tests
+✓ Service layer tests
+✓ Controller layer tests
+```
+
+### Troubleshooting
+
+#### Database Connection Issues
+
+**Problem:** `ER_ACCESS_DENIED_ERROR`
+- **Solution:** Check your `.env` credentials match your MySQL user
+
+**Problem:** `ER_BAD_DB_ERROR`
+- **Solution:** Database doesn't exist. Run `CREATE DATABASE govtech_db;`
+
+#### Migration Issues
+
+**Problem:** Migration already executed
+- **Solution:** This is normal if migrations were already run. Skip or use `npm run migration:revert` to rollback
+
+#### Seed Script Issues
+
+**Problem:** Duplicate entry errors
+- **Solution:** The seed script is idempotent. Duplicate warnings are normal and safe to ignore
+
+
+### Next Steps
+
+- 📖 Read the [API Documentation](#-api-endpoints) for detailed endpoint specifications
+- 🧪 Explore the test suite in `tests/` directory
+- 🏗️ Review the [Project Structure](#-project-structure) to understand the codebase
+- 🚀 Try [deploying to Google Cloud Run](#-deployment-to-google-cloud-run)
+
 ## 🧪 Testing
 
 Run the comprehensive unit test suite:
@@ -92,6 +344,7 @@ src/
 ├── migrations/      # Database migrations
 ├── repositories/    # Custom repository methods
 ├── routes/          # API route definitions
+├── scripts/         # Database seeding and utility
 ├── services/        # Business logic layer
 ├── utils/           # Helpers, constants, exceptions
 ├── app.ts           # Express app setup
@@ -115,8 +368,9 @@ tests/
     - **Rate Limiting**: Request throttling to prevent abuse
 *   **`src/routes`**: API endpoint definitions mapping HTTP methods and paths to their respective controllers and middlewares.
 *   **`src/dtos`**: Data Transfer Objects defining request validation schemas using Joi.
+*   **`src/scripts`**: Standalone scripts for database seeding and other utility tasks. These scripts can be run independently via npm commands.
 *   **`src/utils`**: Utility functions, constants, custom exceptions, and helper methods.
-*   **`src/migrations`**: TypeORM migration files for database schema versioning and seeding.
+*   **`src/migrations`**: TypeORM migration files for database schema versioning.
 
 ## 🔄 Request Flow
 
@@ -280,6 +534,7 @@ npm run build            # Compile TypeScript to JavaScript
 npm start                # Run production server
 npm test                 # Run Jest tests
 npm run lint             # Run ESLint
+npm run seed             # Seed database with initial mock data
 npm run migration:generate  # Generate new migration (on commit remember CREATE IF NOT EXISTS)
 npm run migration:run    # Run pending migrations
 npm run migration:revert # Revert last migration
@@ -296,7 +551,6 @@ npm run migration:run
 
 ## 🔒 Security Features
 
-- ✅ Helmet.js for security headers
 - ✅ CORS enabled
 - ✅ Rate limiting (100 requests per 15 minutes)
 - ✅ Input validation with Joi
