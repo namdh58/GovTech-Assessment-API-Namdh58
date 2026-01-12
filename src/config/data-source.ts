@@ -18,8 +18,9 @@ export const AppDataSource = new DataSource({
     username: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || 'root',
     database: process.env.DB_NAME || 'school_admin',
-    synchronize: false, // Changed from auto-sync to false for migrations
+    synchronize: false,
     logging: false,
     entities: [Teacher, Student],
-    migrations: ['src/migrations/*.ts'],
+    migrations: [__dirname + '/../migrations/*.{ts,js}'],
+    migrationsRun: true, // Auto-run migrations on startup
 });
